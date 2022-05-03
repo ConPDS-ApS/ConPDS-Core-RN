@@ -1,5 +1,6 @@
 package com.conpds.ocrenginedemo.java.ocrenginedemoapp;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
@@ -14,7 +15,10 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+//public class MainApplication extends Application implements ReactApplication {
 public class MainApplication extends App implements ReactApplication {
+
+    static Activity gActivity;
 
   private final ReactNativeHost mReactNativeHost =
       new ReactNativeHost(this) {
@@ -52,7 +56,7 @@ public class MainApplication extends App implements ReactApplication {
       Context context, ReactInstanceManager reactInstanceManager) {
     if (BuildConfig.DEBUG) {
       try {
-        Class<?> aClass = Class.forName("com.ocrproject.ReactNativeFlipper");
+        Class<?> aClass = Class.forName("com.conpds.ocrenginedemo.java.ocrenginedemoapp.ReactNativeFlipper");
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);

@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
   NativeModules
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -22,6 +23,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 const App = () => {
   const { OcrModule } = NativeModules;
   const [selecteImg, setSelectedImg] = useState(null);
+  const [result, setResult] = useState("OCR Result");
   const handlePickerClick = async () => {
     const {didCancel, errorCode, errorMessage, assets} = await launchImageLibrary({
       mediaType: 'photo'
@@ -42,6 +44,7 @@ const App = () => {
         assets[0].uri,
         (return_data) => {
           console.log('|||||||||||||||||||||', return_data);
+          setResult(return_data);
         }
       );
       setSelectedImg(assets[0]);
@@ -57,21 +60,23 @@ const App = () => {
               <Text style={styles.headerTxt}>OCR Engine</Text>
             </View>
             <View style={styles.content}>
-              <Text style={styles.descriptionTxt}>
-                Selected Image
-              </Text>
-              <Pressable style={styles.pickerView} onPress={handlePickerClick}>
-                {selecteImg ? 
-                  <Image source={{uri: selecteImg.uri}} resizeMode='cover' style={styles.imgView}/>
-                :
-                  <Text style={[styles.descriptionTxt, {width: 150}]}>
-                    Please choose a Image (Tab here)
-                  </Text>
-                }
-              </Pressable>
-              <Text style={styles.descriptionTxt}>
-                OCR Data
-              </Text>
+              <ScrollView>
+                <Text style={styles.descriptionTxt}>
+                  Selected Image
+                </Text>
+                <Pressable style={styles.pickerView} onPress={handlePickerClick}>
+                  {selecteImg ? 
+                    <Image source={{uri: selecteImg.uri}} resizeMode='cover' style={styles.imgView}/>
+                  :
+                    <Text style={[styles.descriptionTxt, {width: 150}]}>
+                      Please choose a Image (Tab here)
+                    </Text>
+                  }
+                </Pressable>
+                <Text style={styles.descriptionTxt}>
+                  {result}
+                </Text>
+              </ScrollView>
             </View>
           </View>
         </SafeAreaView>
@@ -114,6 +119,7 @@ bottomSafeArea: {
   descriptionTxt: {
     fontSize: 14,
     textAlign: 'center',
+    color: 'black',
   },
   pickerView: {
     height: 250,

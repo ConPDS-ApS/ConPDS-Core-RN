@@ -1,5 +1,8 @@
 package com.conpds.ocrenginedemo.java.ocrenginedemoapp;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -11,18 +14,18 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Map;
 
 public class OcrModule extends ReactContextBaseJavaModule {
 
+    private final ReactApplicationContext mContext;
+
     OcrModule(ReactApplicationContext context) {
         super(context);
+        mContext = context;
     }
 
     @NonNull
@@ -32,85 +35,34 @@ public class OcrModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getOcrDatafromImage(String base64, String fileName, double fileSize, String type, String uri, Callback callBack) {
-        Log.d("RN Request : ", uri);
+    public void getOcrDatafromImage(
+            String base64,
+            String fileName,
+            double fileSize,
+            String type,
+            String uri,
+            Callback callBack
+    ) {
+        String finalUri = uri.replace("file://", "");
 
         String API_KEY = "YOUR_ANDROID_API_KEY";
         String LICENSE_KEY = "YOUR_ANDROID_LICENSE_KEY";
-        MainInteractorImpl ocrEngine = new MainInteractorImpl(getCurrentActivity());
-        String request = ocrEngine.generateLicenseRequest(API_KEY, LICENSE_KEY);
-        Log.d("OCR Request : ", request);
-        ocrEngine.recogFromFileToJson(
-                API_KEY,
-                LICENSE_KEY,
-                new String[]{uri},
-                new MainInteractor.Callback() {
-                    @Override
-                    public void recogOk(Map<String, String> map) {
-                        callBack.invoke(map.toString());
-                    }
-
-                    @Override
-                    public void recogError(BaseOcrException e) {
-                        callBack.invoke(e.getMessage());
-                    }
-                }
-        );
+        MainInteractorImpl ocrEngine = new MainInteractorImpl(getSettingsPath());
+        Bitmap src = BitmapFactory.decodeFile(finalUri);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        src.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+        String result = ocrEngine.recogFromBufferToJsonInSingleThread(API_KEY, LICENSE_KEY, data);
+        Log.d("OCR Result : ", result);
+        callBack.invoke(result);
     }
 
-    public static JSONObject convertMapToJson(ReadableMap readableMap)
-            throws JSONException {
-
-        JSONObject object = new JSONObject();
-
-        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
-
-        while (iterator.hasNextKey()) {
-
-            String key = iterator.nextKey();
-
-            switch (readableMap.getType(key)) {
-
-                case Null:
-
-                    object.put(key, JSONObject.NULL);
-
-                    break;
-
-                case Boolean:
-
-                    object.put(key, readableMap.getBoolean(key));
-
-                    break;
-
-                case Number:
-
-                    object.put(key, readableMap.getDouble(key));
-
-                    break;
-
-                case String:
-
-                    object.put(key, readableMap.getString(key));
-
-                    break;
-
-                case Map:
-
-                    object.put(key,convertMapToJson(readableMap.getMap(key)));
-
-                    break;
-
-//                case Array:
-//
-//                    object.put(key, convertArrayToJson(readableMap.getArray( key)));
-//
-//                    break;
-            }
-
+    private String getSettingsPath() {
+        String path = mContext.getCacheDir().getParent() + "/settings";
+        File folder = new File(path);
+        if (!folder.exists()){
+            folder.mkdirs();
         }
-
-        return object;
-
+        return folder.getPath();
     }
 }
