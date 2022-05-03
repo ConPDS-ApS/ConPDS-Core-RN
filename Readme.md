@@ -17,8 +17,6 @@ Change ios/RCTOcrModule.m to have valid value for below items:
 
 **Android**
 
-*Please note: Android version is not functional as of now, we are working on a fix*
-
 Change android/app/src/main/java/com/conpds/ocrenginedemo/java/ocrenginedemoapp/OcrModule.java to have valid value for below items:
 
 String API_KEY = "YOUR_ANDROID_API_KEY";
